@@ -1,0 +1,6 @@
+/// Ruta del Excel de control que genera el robot (control_facturas.xlsx)
+expression RutaExcel = "C:\Users\JhonnathanDR\Desktop\Prueba tecnica\prueba-dian\prueba-dian\control_facturas.xlsx" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 1f4689b9-dbf6-42e2-8bf8-e09cba763445
+
+	annotation PBI_ResultType = Text
+

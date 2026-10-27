@@ -1,0 +1,16 @@
+.env
+venv/
+descargas/
+salida/
+rpa.log
+control_facturas.xlsx
+__pycache__/
+perfil_edge/
+perfil_chrome/
+downloaded_files/
+downloads_folder/
+latest_logs/
+archived_logs/
+# Power BI: caché y ajustes locales
+powerbi/**/.pbi/localSettings.json
+powerbi/**/.pbi/cache.abf

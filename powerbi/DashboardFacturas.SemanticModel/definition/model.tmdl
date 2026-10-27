@@ -1,0 +1,14 @@
+model Model
+	culture: es-CO
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-CO
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["Facturas","RutaExcel"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Facturas
+

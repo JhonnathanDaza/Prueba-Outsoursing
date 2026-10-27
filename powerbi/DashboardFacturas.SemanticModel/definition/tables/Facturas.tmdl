@@ -1,0 +1,89 @@
+table Facturas
+	lineageTag: 8cfb56ad-8578-42e0-917b-331d795b2768
+
+	measure 'Total CUFEs' = COUNTROWS(Facturas)
+		formatString: 0
+		lineageTag: 2e4f68b3-d110-4d12-9675-62fbd4ae1630
+
+	measure Exitosos = CALCULATE(COUNTROWS(Facturas), Facturas[Estado] = "Exitoso") + 0
+		formatString: 0
+		lineageTag: 35645661-e07a-4326-8935-1bbfe814e54e
+
+	measure 'No exitosos' = CALCULATE(COUNTROWS(Facturas), Facturas[Estado] = "No exitoso") + 0
+		formatString: 0
+		lineageTag: 3f613dcd-89de-4100-a55b-dfda9d338322
+
+	measure 'Por reprocesar' = CALCULATE(COUNTROWS(Facturas), UPPER(TRIM(Facturas[Reprocesar])) IN {"X", "SI", "SÍ", "1"}) + 0
+		formatString: 0
+		lineageTag: f1f4a38b-623b-4ed2-a7f5-a8fa6ec6ed7a
+
+	measure '% Éxito' = DIVIDE([Exitosos], [Total CUFEs], 0)
+		formatString: 0.0%
+		lineageTag: e1e975f2-5e83-4a32-a4cf-7abb45878460
+
+	column N
+		dataType: int64
+		formatString: 0
+		lineageTag: f6b66818-e76d-4f84-824c-d05cee38554c
+		summarizeBy: none
+		sourceColumn: N
+
+	column CUFE
+		dataType: string
+		lineageTag: ae1a6635-ec2e-4ad6-84ac-3174d3bc652f
+		summarizeBy: none
+		sourceColumn: CUFE
+
+	column Procesado
+		dataType: string
+		lineageTag: 87709fc4-6bec-48a4-9f7f-a2228816d6c4
+		summarizeBy: none
+		sourceColumn: Procesado
+
+	column 'No procesado'
+		dataType: string
+		lineageTag: 415c2d2e-5781-429b-a492-d948542bea35
+		summarizeBy: none
+		sourceColumn: No procesado
+
+	column Observación
+		dataType: string
+		lineageTag: 4f479b78-15d5-4bd8-8c4c-c5f1b61a2224
+		summarizeBy: none
+		sourceColumn: Observación
+
+	column 'Fecha proceso'
+		dataType: dateTime
+		formatString: yyyy-mm-dd hh:nn:ss
+		lineageTag: 5249c90b-d049-42dd-b27d-457a145d2a30
+		summarizeBy: none
+		sourceColumn: Fecha proceso
+
+	column Reprocesar
+		dataType: string
+		lineageTag: ab6eb03d-4174-4938-9055-26063d7cd3c6
+		summarizeBy: none
+		sourceColumn: Reprocesar
+
+	column Estado
+		dataType: string
+		lineageTag: 273aafa6-87f8-494e-960e-7378398a1257
+		summarizeBy: none
+		sourceColumn: Estado
+
+	partition Facturas = m
+		mode: import
+		source =
+				let
+					Origen = Excel.Workbook(File.Contents(RutaExcel), null, true),
+					Hoja = Origen{[Item="CUFES", Kind="Sheet"]}[Data],
+					Encabezados = Table.PromoteHeaders(Hoja, [PromoteAllScalars=true]),
+					Columnas = Table.SelectColumns(Encabezados, List.FirstN(Table.ColumnNames(Encabezados), 7)),
+					Renombradas = Table.RenameColumns(Columnas, List.Zip({Table.ColumnNames(Columnas), {"N", "CUFE", "Procesado", "No procesado", "Observación", "Fecha proceso", "Reprocesar"}})),
+					Filas = Table.SelectRows(Renombradas, each [CUFE] <> null and [CUFE] <> ""),
+					Tipos = Table.TransformColumnTypes(Filas, {{"N", Int64.Type}, {"CUFE", type text}, {"Procesado", type text}, {"No procesado", type text}, {"Observación", type text}, {"Fecha proceso", type text}, {"Reprocesar", type text}}),
+					Fecha = Table.TransformColumns(Tipos, {{"Fecha proceso", each try DateTime.FromText(_, [Format="yyyy-MM-dd HH:mm:ss", Culture="en-US"]) otherwise null, type nullable datetime}}),
+					Estado = Table.AddColumn(Fecha, "Estado", each if [Procesado] = "Exitoso" then "Exitoso" else if [No procesado] = "No exitoso" then "No exitoso" else "Pendiente", type text)
+				in
+					Estado
+

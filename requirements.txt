@@ -1,0 +1,4 @@
+selenium>=4.6
+seleniumbase>=4.30
+pandas>=2.0
+pdfplumber>=0.11
